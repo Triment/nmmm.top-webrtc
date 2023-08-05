@@ -18,7 +18,10 @@ export default function Page() {
     //   const id = await res.text();
     //   setLocalID(id);
     import("peerjs").then(async ({ Peer }) => {
-      let newpeer = new Peer();
+      let newpeer = new Peer({
+        host: 'nmmm.top',
+        secure: true
+      });
 
       newpeer.on("open", (id) => {
         setLocalID(id);
@@ -27,7 +30,6 @@ export default function Page() {
       newpeer.on("call", (mediaConn) => {
         setRemoteID(mediaConn.peer);
         console.log(`call from`, mediaConn);
-
         setRemoteConn(mediaConn);
       });
 
@@ -68,16 +70,18 @@ export default function Page() {
           ref={remoteMedia}
         ></video>
       </div>
-      <div className="w-full flex justify-around">
+      <div className="w-full mt-2 flex justify-around">
         {remoteConn && (
           <button
-            className="px-3 py-2 w-24 shadow bg-slate-300"
+            className="px-3 py-2 shadow bg-slate-300"
             onClick={() => {
+              console.log("确认事件触发")
               navigator.mediaDevices
                 .getDisplayMedia({
                   video: true,
                 })
                 .then((localStream) => {
+                  setRemoteID('')
                   console.log(`send stream`);
                   remoteConn!.answer(localStream);
                   (
@@ -99,8 +103,15 @@ export default function Page() {
           </button>
         )}
 
+        { remoteConn && remoteConn.open && <button 
+          onClick={()=>{
+            remoteConn?.close();
+            
+          }}
+        className="text-blue-500 hover:text-red-500">断开</button> }
+
         <button
-          className="px-3 py-2 w-24 shadow bg-slate-300"
+          className="px-3  py-2 shadow bg-slate-300"
           onClick={() => {
             navigator.mediaDevices
               .getDisplayMedia({
@@ -122,6 +133,11 @@ export default function Page() {
                   )! as HTMLVideoElement
                 ).srcObject = localStream;
               });
+              (
+                window.document.getElementById(
+                  "remote-media"
+                )! as HTMLVideoElement
+              ).classList.add('z-50 left-0 top-0 absolute min-w-full min-h-screen')
           }}
         >
           连接
